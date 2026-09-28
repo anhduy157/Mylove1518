@@ -64,7 +64,7 @@
     const minutes = Math.floor((remaining % 3600000) / 60000);
     const seconds = Math.floor((remaining % 60000) / 1000);
     const pad = value => String(value).padStart(2, "0");
-    const text = `Còn ${days} ngày ${pad(hours)}:${pad(minutes)}:${pad(seconds)} ❤️`;
+      const text = `❤️❤️❤️❤️❤️❤️❤️`;
 
     setText("birthdayCountdown", text);
     if (countdown) countdown.hidden = false;
