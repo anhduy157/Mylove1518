@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QR Trái Tim - Liền Khối</title>
+<style>
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    min-height:100vh;
+    font-family:"Segoe UI",Arial,sans-serif;
+    background:#f1f1f2;
+    color:#222;
+    padding:18px;
+  }
+  .wrap{
+    width:min(96vw,900px);
+    margin:auto;
+    background:#fff;
+    border:1px solid #e8e8e8;
+    border-radius:22px;
+    padding:18px;
+    box-shadow:0 18px 50px rgba(0,0,0,.08);
+  }
+  h1{
+    margin:0 0 8px;
+    text-align:center;
+    color:#df1733;
+    font-size:clamp(25px,4vw,38px);
+  }
+  .sub{
+    margin:0 auto 16px;
+    max-width:760px;
+    text-align:center;
+    color:#666;
+    line-height:1.55;
+  }
+  .row{
+    display:grid;
+    grid-template-columns:1fr auto;
+    gap:10px;
+    margin-bottom:12px;
+  }
+  input{
+    min-height:48px;
+    width:100%;
+    border:1px solid #d7d7d7;
+    border-radius:13px;
+    padding:0 14px;
+    font-size:15px;
+    outline:none;
+  }
+  input:focus{
+    border-color:#df1733;
+    box-shadow:0 0 0 3px rgba(223,23,51,.1);
+  }
+  button{
+    min-height:46px;
+    border:0;
+    border-radius:12px;
+    padding:0 16px;
+    background:#df1733;
+    color:#fff;
+    font-weight:700;
+    cursor:pointer;
+  }
+  button.secondary{
+    background:#fff;
+    color:#df1733;
+    border:1px solid #efadb8;
+  }
+  .modes{
+    display:flex;
+    justify-content:center;
+    gap:8px;
+    flex-wrap:wrap;
+    margin-bottom:12px;
+  }
+  .mode{
+    background:#fff;
+    color:#df1733;
+    border:1px solid #efadb8;
+  }
+  .mode.active{
+    background:#df1733;
+    color:#fff;
+  }
+  .preview{
+    display:grid;
+    place-items:center;
+    background:#f8f8f8;
+    border-radius:18px;
+    overflow:hidden;
+  }
+  canvas{
+    width:min(100%,700px);
+    height:auto;
+    display:block;
+  }
+  .actions{
+    display:flex;
+    justify-content:center;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-top:12px;
+  }
+  .status{
+    min-height:20px;
+    margin-top:8px;
+    text-align:center;
+    color:#666;
+    font-size:13px;
+  }
+  .note{
+    margin-top:12px;
+    border:1px solid #ffd7de;
+    background:#fff7f8;
+    color:#704149;
+    border-radius:13px;
+    padding:12px 14px;
+    font-size:13px;
+    line-height:1.55;
+  }
+  @media(max-width:640px){
+    .row{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>QR Trái Tim ❤️</h1>
+  <p class="sub">
+    Bản này làm phần trang trí <b>liền sát QR</b> và dùng đúng silhouette trái tim,
+    không còn hai mảng rời xa nhau như trước.
+  </p>
+
+  <div class="row">
+    <input id="urlInput" value="https://example.com/love/" placeholder="Dán link web thật vào đây">
+    <button id="generateBtn">Tạo QR</button>
+  </div>
+
+  <div class="modes">
+    <button id="beautyBtn" class="mode active">Đẹp - sát QR</button>
+    <button id="safeBtn" class="mode">An toàn quét</button>
+  </div>
+
+  <div class="preview">
+    <canvas id="canvas" width="1000" height="1000"></canvas>
+  </div>
+
+  <div class="actions">
+    <button id="downloadBtn">Tải PNG</button>
+    <button id="downloadRawBtn" class="secondary">Tải QR gốc</button>
+  </div>
+
+  <div id="status" class="status"></div>
+
+  <div class="note">
+    Chế độ <b>Đẹp - sát QR</b> chỉ để khoảng trắng khoảng 1 module nên nhìn liền khối hơn.
+    Nếu điện thoại của bạn quét khó, chuyển sang <b>An toàn quét</b> để tăng vùng trắng lên 4 module.
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script>
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+const input = document.getElementById("urlInput");
+const status = document.getElementById("status");
+const beautyBtn = document.getElementById("beautyBtn");
+const safeBtn = document.getElementById("safeBtn");
+
+const RED = "#e11837";
+const BG = "#f8f8f8";
+
+let quietModules = 1;
+
+// ----- hình học chính -----
+const CX = 500;
+const CY = 590;
+const QR_DATA_SIDE = 440;
+const ROT = Math.PI / 4; // 45 độ
+const DECOR_STEP = 14;
+
+function normalizeUrl(v){
+  let s=(v||"").trim();
+  if(!s) return "";
+  if(!/^https?:\/\//i.test(s)) s="https://"+s;
+  return s;
+}
+
+function hashString(str){
+  let h=2166136261>>>0;
+  for(let i=0;i<str.length;i++){
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h,16777619);
+  }
+  return h>>>0;
+}
+
+function rand(seed){
+  let a=seed>>>0;
+  return function(){
+    let t=a+=0x6D2B79F5;
+    t=Math.imul(t^t>>>15,t|1);
+    t^=t+Math.imul(t^t>>>7,t|61);
+    return ((t^t>>>14)>>>0)/4294967296;
+  }
+}
+
+function drawBracket(x,y,flipX,flipY){
+  ctx.save();
+  ctx.translate(x,y);
+  ctx.scale(flipX?-1:1,flipY?-1:1);
+  ctx.strokeStyle="rgba(255,255,255,.98)";
+  ctx.lineWidth=13;
+  ctx.lineCap="round";
+  ctx.lineJoin="round";
+  ctx.shadowColor="rgba(0,0,0,.08)";
+  ctx.shadowBlur=6;
+  ctx.beginPath();
+  ctx.moveTo(0,48);
+  ctx.lineTo(0,0);
+  ctx.lineTo(48,0);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawBackground(){
+  ctx.clearRect(0,0,1000,1000);
+  ctx.fillStyle=BG;
+  ctx.fillRect(0,0,1000,1000);
+
+  drawBracket(35,45,false,false);
+  drawBracket(965,45,true,false);
+  drawBracket(35,955,false,true);
+  drawBracket(965,955,true,true);
+}
+
+// silhouette trái tim - rộng ở 2 múi trên, nhọn xuống dưới
+function inHeart(px,py){
+  const x=(px-500)/390;
+  const y=-(py-510)/360;
+  const a=x*x+y*y-1;
+  return (a*a*a - x*x*y*y*y) <= 0;
+}
+
+function qrLocal(px,py){
+  const dx=px-CX;
+  const dy=py-CY;
+
+  const c=Math.cos(-ROT);
+  const s=Math.sin(-ROT);
+
+  return {
+    x:dx*c-dy*s,
+    y:dx*s+dy*c
+  };
+}
+
+function insideQrQuiet(px,py,qr){
+  const n=qr.getModuleCount();
+  const m=QR_DATA_SIDE/n;
+  const half=QR_DATA_SIDE/2 + quietModules*m;
+
+  const p=qrLocal(px,py);
+  return Math.abs(p.x)<=half && Math.abs(p.y)<=half;
+}
+
+function distanceOutsideQr(px,py,qr){
+  const n=qr.getModuleCount();
+  const m=QR_DATA_SIDE/n;
+  const half=QR_DATA_SIDE/2 + quietModules*m;
+  const p=qrLocal(px,py);
+
+  const ox=Math.max(Math.abs(p.x)-half,0);
+  const oy=Math.max(Math.abs(p.y)-half,0);
+
+  return Math.hypot(ox,oy);
+}
+
+function drawHeartDecoration(url,qr){
+  const rnd=rand(hashString(url));
+
+  for(let y=40;y<930;y+=DECOR_STEP){
+    for(let x=60;x<940;x+=DECOR_STEP){
+      const cx=x+DECOR_STEP/2;
+      const cy=y+DECOR_STEP/2;
+
+      if(!inHeart(cx,cy)) continue;
+      if(insideQrQuiet(cx,cy,qr)) continue;
+
+      const edge =
+        !inHeart(cx-DECOR_STEP,cy) ||
+        !inHeart(cx+DECOR_STEP,cy) ||
+        !inHeart(cx,cy-DECOR_STEP) ||
+        !inHeart(cx,cy+DECOR_STEP);
+
+      let chance=0.68;
+
+      // mép tim phải rõ
+      if(edge) chance=0.92;
+
+      // hai múi phía trên dày hơn
+      if(cy<430) chance=Math.max(chance,0.77);
+
+      // ngay sát QR thì cho đặc hơn để không bị "đứt"
+      const d=distanceOutsideQr(cx,cy,qr);
+      if(d<20) chance=0.94;
+      else if(d<38) chance=Math.max(chance,0.84);
+
+      if(rnd()<chance){
+        ctx.fillStyle=RED;
+        ctx.fillRect(
+          x,
+          y,
+          DECOR_STEP-1,
+          DECOR_STEP-1
+        );
+      }
+    }
+  }
+}
+
+function drawQr(qr){
+  const n=qr.getModuleCount();
+  const m=QR_DATA_SIDE/n;
+  const totalSide=QR_DATA_SIDE + quietModules*2*m;
+
+  ctx.save();
+  ctx.translate(CX,CY);
+  ctx.rotate(ROT);
+
+  // nền trắng chỉ đúng bằng vùng QR + quiet zone
+  ctx.fillStyle="#fff";
+  ctx.fillRect(-totalSide/2,-totalSide/2,totalSide,totalSide);
+
+  ctx.fillStyle=RED;
+
+  const dataStart=-QR_DATA_SIDE/2;
+
+  for(let r=0;r<n;r++){
+    for(let c=0;c<n;c++){
+      if(!qr.isDark(r,c)) continue;
+
+      ctx.fillRect(
+        dataStart+c*m,
+        dataStart+r*m,
+        m+.3,
+        m+.3
+      );
+    }
+  }
+
+  ctx.restore();
+}
+
+function generate(){
+  const url=normalizeUrl(input.value);
+  if(!url){
+    status.textContent="Hãy nhập link web.";
+    return;
+  }
+
+  input.value=url;
+
+  if(typeof qrcode==="undefined"){
+    status.textContent="Không tải được thư viện QR. Kiểm tra Internet.";
+    return;
+  }
+
+  try{
+    const qr=qrcode(0,"H");
+    qr.addData(url);
+    qr.make();
+
+    drawBackground();
+    drawHeartDecoration(url,qr);
+    drawQr(qr);
+
+    status.textContent =
+      quietModules===1
+      ? "Đã tạo: phần trang trí sát QR, hình trái tim liền hơn."
+      : "Đã tạo: vùng trắng 4 module để ưu tiên khả năng quét.";
+  }catch(e){
+    console.error(e);
+    status.textContent="Không tạo được QR. Hãy thử link ngắn hơn.";
+  }
+}
+
+beautyBtn.addEventListener("click",()=>{
+  quietModules=1;
+  beautyBtn.classList.add("active");
+  safeBtn.classList.remove("active");
+  generate();
+});
+
+safeBtn.addEventListener("click",()=>{
+  quietModules=4;
+  safeBtn.classList.add("active");
+  beautyBtn.classList.remove("active");
+  generate();
+});
+
+document.getElementById("generateBtn").addEventListener("click",generate);
+
+input.addEventListener("keydown",e=>{
+  if(e.key==="Enter") generate();
+});
+
+document.getElementById("downloadBtn").addEventListener("click",()=>{
+  const a=document.createElement("a");
+  a.download="QR-trai-tim-lien-khoi.png";
+  a.href=canvas.toDataURL("image/png");
+  a.click();
+});
+
+document.getElementById("downloadRawBtn").addEventListener("click",()=>{
+  const url=normalizeUrl(input.value);
+  if(!url || typeof qrcode==="undefined") return;
+
+  const qr=qrcode(0,"H");
+  qr.addData(url);
+  qr.make();
+
+  const c=document.createElement("canvas");
+  c.width=900;
+  c.height=900;
+
+  const cctx=c.getContext("2d");
+  const n=qr.getModuleCount();
+  const q=4;
+  const total=n+q*2;
+  const m=900/total;
+
+  cctx.fillStyle="#fff";
+  cctx.fillRect(0,0,900,900);
+
+  cctx.fillStyle=RED;
+
+  for(let r=0;r<n;r++){
+    for(let col=0;col<n;col++){
+      if(qr.isDark(r,col)){
+        cctx.fillRect(
+          (col+q)*m,
+          (r+q)*m,
+          m+.3,
+          m+.3
+        );
+      }
+    }
+  }
+
+  const a=document.createElement("a");
+  a.download="QR-goc.png";
+  a.href=c.toDataURL("image/png");
+  a.click();
+});
+
+generate();
+</script>
+</body>
+</html>

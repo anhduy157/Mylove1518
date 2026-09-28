@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#02030a" />
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <title>Chúc mừng sinh nhật vợ iu ❤️</title>
+  <script>
+    window.APP_VERSION = Date.now().toString();
+    document.write(`<link rel="stylesheet" href="style.css?v=${window.APP_VERSION}" />`);
+  </script>
+</head>
+<body>
+  <div id="stars"></div>
+
+  <main id="experience">
+    <section id="startScreen" class="start-screen">
+      <div class="start-cake" aria-hidden="true">
+        <div class="start-cake-candle candle-a"><span></span><span></span><span></span></div>
+        <div class="start-cake-candle candle-b"><span></span><span></span><span></span></div>
+        <div class="start-cake-candle candle-c"><span></span><span></span><span></span></div>
+        <div class="start-cake-icing">
+          <i></i><i></i><i></i><i></i><i></i>
+        </div>
+        <div class="start-cake-layer start-cake-top"></div>
+        <div class="start-cake-layer start-cake-mid"></div>
+        <div class="start-cake-layer start-cake-bottom"></div>
+      </div>
+
+      <div class="heart-orbit">
+        <canvas id="startHeartCanvas" class="start-heart-canvas" aria-hidden="true"></canvas>
+        <div class="big-heart">❤</div>
+        <span class="orbit-dot dot-1">❤</span>
+        <span class="orbit-dot dot-2">❤</span>
+        <span class="orbit-dot dot-3">❤</span>
+      </div>
+
+      <img class="start-photo" src="images/batdau.png" alt="" />
+
+      <h1 id="startTitle" hidden>Chạm để mở ❤️</h1>
+      <p id="startSub">Một món quà nhỏ dành riêng cho em</p>
+      <p id="birthdayCountdown" class="birthday-countdown">Đang đếm ngày...</p>
+      <button id="startBtn" class="gift-btn" type="button" aria-label="Mở quà">
+        <span class="gift-box" aria-hidden="true">
+          <span class="gift-lid"></span>
+          <span class="gift-ribbon gift-ribbon-v"></span>
+          <span class="gift-ribbon gift-ribbon-h"></span>
+          <span class="gift-bow gift-bow-left"></span>
+          <span class="gift-bow gift-bow-right"></span>
+        </span>
+        <span class="gift-label">Mở quà</span>
+      </button>
+      <!-- <p class="hint">Sau khi mở, hãy kéo hoặc nghiêng điện thoại để cảm nhận chiều sâu.</p> -->
+    </section>
+
+    <section id="sceneWrap" class="scene-wrap" aria-hidden="true">
+      <div class="start-cake scene-cake" aria-hidden="true">
+        <div class="start-cake-candle candle-a"><span></span><span></span><span></span></div>
+        <div class="start-cake-candle candle-b"><span></span><span></span><span></span></div>
+        <div class="start-cake-candle candle-c"><span></span><span></span><span></span></div>
+        <div class="start-cake-icing">
+          <i></i><i></i><i></i><i></i><i></i>
+        </div>
+        <div class="start-cake-layer start-cake-top"></div>
+        <div class="start-cake-layer start-cake-mid"></div>
+        <div class="start-cake-layer start-cake-bottom"></div>
+      </div>
+      <div class="ambient-glow glow-a"></div>
+      <div class="ambient-glow glow-b"></div>
+      <canvas id="sceneHeartCanvas" class="scene-heart-canvas" aria-hidden="true"></canvas>
+      <div id="scene" class="scene"></div>
+      <div id="fallLayer" class="fall-layer" aria-hidden="true"></div>
+
+      <div class="hud">
+        <div id="anniversary" class="hud-title">Chúc mừng sinh nhật ❤️</div>
+        <!-- <div id="days" class="hud-subtitle">1000 Days</div> -->
+      </div>
+
+      <button id="soundBtn" class="sound-btn" type="button" aria-label="Nhạc nền" hidden>♫</button>
+    </section>
+
+    <section id="finale" class="finale" aria-hidden="true">
+      <canvas id="finaleCanvas" class="finale-canvas"></canvas>
+      <div class="finale-halo" aria-hidden="true"></div>
+      <div class="finale-mobile-heart" aria-hidden="true">❤</div>
+
+      <div id="finaleCopy" class="finale-copy">
+        <img id="finalePhoto" class="finale-photo" src="images/1.jpg" alt="" />
+        <div id="finaleTitle" class="finale-title">Quang Duy ❤️ Hà Trang</div>
+        <p id="finaleMessage" class="finale-message">Cảm ơn em đã xuất hiện trong cuộc đời anh ❤️</p>
+        <button id="replayBtn" class="replay-btn" type="button">XEM LẠI ❤️</button>
+      </div>
+
+      <div id="proposal" class="proposal" aria-hidden="true">
+        <div class="proposal-card">
+          <div class="proposal-ring" aria-hidden="true"></div>
+          <div id="proposalQuestion" class="proposal-question">Em đồng ý làm vợ anh không?</div>
+          <div class="proposal-actions">
+            <button id="proposalYesBtn" class="proposal-yes-btn" type="button">Có ❤️</button>
+            <button id="proposalNoBtn" class="proposal-no-btn" type="button">Không</button>
+          </div>
+          <div id="proposalNoMessage" class="proposal-no-message" aria-live="polite"></div>
+        </div>
+        <div id="proposalHappyEnd" class="proposal-happy-end" aria-hidden="true">
+          <span>Mãi bên nhau</span>
+          <strong>Viên mãn ❤️</strong>
+        </div>
+        <video id="proposalVideo" class="proposal-video-fixed" playsinline preload="auto" controls hidden></video>
+      </div>
+
+      <div id="birthdayFinale" class="birthday-finale" aria-hidden="true">
+        <div class="start-cake birthday-final-cake" aria-hidden="true">
+          <div class="start-cake-candle candle-a"><span></span><span></span><span></span></div>
+          <div class="start-cake-candle candle-b"><span></span><span></span><span></span></div>
+          <div class="start-cake-candle candle-c"><span></span><span></span><span></span></div>
+          <div class="start-cake-icing">
+            <i></i><i></i><i></i><i></i><i></i>
+          </div>
+          <div class="start-cake-layer start-cake-top"></div>
+          <div class="start-cake-layer start-cake-mid"></div>
+          <div class="start-cake-layer start-cake-bottom"></div>
+        </div>
+        <div id="birthdayFireworks" class="birthday-fireworks" aria-hidden="true"></div>
+        <div class="birthday-final-photos" aria-hidden="true">
+          <img id="birthdayFinalPhotoLeft" class="birthday-final-photo birthday-final-photo-left" alt="" hidden />
+          <img id="birthdayFinalPhotoRight" class="birthday-final-photo birthday-final-photo-right" alt="" hidden />
+        </div>
+        <div class="birthday-final-copy">
+          <div id="birthdayFinalTitle" class="birthday-final-title">Chúc mừng sinh nhật vợ yêu ❤️</div>
+          <p id="birthdayFinalMessage" class="birthday-final-message">Chúc em luôn hạnh phúc, bình an và mãi bên anh.</p>
+          <button id="birthdayFinalReplayBtn" class="replay-btn birthday-final-replay-btn" type="button">XEM LẠI ❤️</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <audio id="music" loop preload="auto" playsinline autoplay>
+    <source src="music.mp3" type="audio/mpeg" />
+  </audio>
+
+  <script>
+    document.write(`<script src="config.js?v=${window.APP_VERSION}"><\/script>`);
+    document.write(`<script src="app.js?v=${window.APP_VERSION}"><\/script>`);
+  </script>
+</body>
+</html>
